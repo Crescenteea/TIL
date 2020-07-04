@@ -1,8 +1,7 @@
 ## 배열 렌더링
 
 ```react
-{/* App.js */}
-
+// App.js
 import React from 'react';
 import UserList from './UserList';
 
@@ -18,8 +17,7 @@ function App() {
 
 
 ```react
-{/* UserList.js */}
-
+// UserList.js
 import React from 'react';
 
 // 동일 파일내 여러 컴포넌트 선언 가능
@@ -136,7 +134,7 @@ export default UserList;
 
 
 ```react
-{/* App.js */}
+// App.js
 import React, {useRef} from 'react';
 import UserList from './UserList';
 
@@ -179,7 +177,7 @@ function App() {
 
 
 ```react
-{/* UserList.js */}
+// UserList.js
 import React from 'react';
 
 function User({ user }) {
@@ -208,10 +206,10 @@ export default UserList;
 ## 배열 항목 추가
 
 ```react
-{/* App.js */}
+// App.js
 import React, { useRef, useState } from 'react';
 import UserList from './UserList';
-import CreatUser from './CreateUser';
+import CreateUser from './CreateUser';
 
 function App() {
   const [inputs, setInputs] = useState({
@@ -265,7 +263,7 @@ function App() {
 
     return (
       <>
-      <CreatUser 
+      <CreateUser 
         username={username} 
         email={email} 
         onChange={onChange}
@@ -279,6 +277,35 @@ function App() {
   export default App;
 ```
 
+```react
+// CreateUser.js
+import React from 'react';
+
+function CreateUser({ username, email, onChange, onCreate}) {
+  console.log('CreateUser');
+  return (
+    <div>
+      <input 
+        name="username" 
+        placeholder="계정명" 
+        onChange={onChange} 
+        onCreate={onCreate} 
+        value={username}
+      />
+      <input
+        name="email" 
+        placeholder="이메일" 
+        onChange={onChange}
+        value={email}
+      />
+      <button onClick={onCreate}>등록</button>
+    </div>
+  );
+}
+
+export default CreateUser;
+```
+
 
 
 
@@ -286,10 +313,10 @@ function App() {
 ## 배열 항목 제거
 
 ```react
-{/* App.js */}
+// App.js
 import React, { useRef, useState } from 'react';
 import UserList from './UserList';
-import CreatUser from './CreateUser';
+import CreateUser from './CreateUser';
 
 function App() {
   const [inputs, setInputs] = useState({
@@ -347,7 +374,7 @@ function App() {
 
     return (
       <>
-      <CreatUser 
+      <CreateUser 
         username={username} 
         email={email} 
         onChange={onChange}
@@ -364,7 +391,7 @@ function App() {
 
 
 ```react
-{/* UserList.js */}
+// UserList.js
 import React from 'react';
 
 function User({ user, onRemove }) {
@@ -386,6 +413,133 @@ function UserList({ users, onRemove }) {
         user={user} 
         key={user.id} 
         onRemove={onRemove}
+       />
+     ))}
+    </div>
+  );
+}
+
+export default UserList;
+```
+
+
+
+
+
+## 배열 항목 수정
+
+```react
+// App.js
+import React, { useRef, useState } from 'react';
+import UserList from './UserList';
+import CreateUser from './CreateUser';
+
+function App() {
+  const [inputs, setInputs] = useState({
+    username: '',
+    email: ''
+  });
+  const { username, email } = inputs;
+  const onChange = e => {
+    const { name, value } = e.target;
+    setInputs({
+      ...inputs,
+      [name]: value
+    });
+  }
+
+  const [users, setUsers] = useState([
+    {
+      id: 1,
+      username: 'Joy',
+      email: 'joy@gmail.com',
+      active: true
+    },
+    {
+      id: 2,
+      username: 'Stanley',
+      email: 'stanley@example.com',
+      active: false
+    },
+    {
+      id: 3,
+      username: 'Soo',
+      email: 'soo@example.com',
+      active: false
+    }
+  ]);
+
+  const nextId = useRef(4);
+
+  const onCreate = () => {
+    const user = {
+      id: nextId.current,
+      username,
+      email,
+    }
+
+    setUsers(users.concat(user));
+    setInputs({
+      username: '',
+      email: ''
+    });
+    nextId.current += 1;
+  };
+
+  const onRemove = id => {
+    setUsers(users.filter(user => user.id !== id));
+  }
+
+  const onToggle = id => {
+    setUsers(users.map(user => user.id === id 
+      ? { ...user, active: !user.active }
+      : user
+    ))};
+
+    return (
+      <>
+      <CreateUser 
+        username={username} 
+        email={email} 
+        onChange={onChange}
+        onCreate={onCreate}
+        />
+      <UserList users={users} onRemove={onRemove} onToggle={onToggle}/>
+      </>
+    );
+  }
+  
+  export default App;
+```
+
+
+
+```react
+// UserList.js
+import React from 'react';
+
+function User({ user, onRemove, onToggle }) {
+  const { username, email, id, active } = user;
+  return (
+    <div>
+      <b style={{
+        color: active ? 'blue' : 'black',
+        cursor: 'pointer'
+      }} onClick={() => onToggle(id)}>{user.username}</b> <span>({user.email})</span>
+      <button onClick={() => onRemove(user.id)}>삭제</button>
+    </div>
+  );
+}
+
+function UserList({ users, onRemove, onToggle }) {
+  return (
+    <div>
+     {users.map(user => (
+       <User 
+        user={user} 
+        key={user.id} 
+        onRemove={onRemove}
+        onToggle={onToggle}
        />
      ))}
     </div>

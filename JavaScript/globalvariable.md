@@ -137,18 +137,105 @@ console.log(x); // ReferenceError: x is not defined
 
 ### 3.1. 즉시 실행 함수
 
+즉시 실행 함수는 함수 정의와 동시에 호출되며 단 한 번만 호출된다.
+
+모든 코드를 즉시 실행 함수로 감싸면 모든 변수는 즉시 실행 함수의 지역 변수가 된다. 이러한 특성을 이용해 전역 변수의 사용을 제한하는 방법이다.
+
+```javascript
+(function () {
+  var foo = 10; // 즉시 실행 함수의 지역 변수
+  // ...
+}());
+
+console.log(foo); // ReferenceError: foo is not defined
+```
 
 
-
-
-
-
-### 3.1. 즉시 실행 함수
-
-### 3.1. 즉시 실행 함수
 
 ### 3.2. 네임 스페이스 객체
 
+전역에 네임스페이스 담당 객체를 생성, 전역 변수처럼 사용하고 싶은 변수를 프로퍼티로 추가한다.
+
+```javascript
+var MYAPP = {};
+
+MYAPP.name = 'Kim';
+
+console.log(MYAPP.name); // Kim
+
+```
+
+```javascript
+// 네임스페이스 객체에 또 다른 네임스페이스 객체를 프로퍼티로 추가
+var MYAPP = {}; 
+
+MYAPP.person = {
+  name: 'Kim',
+  address: 'Seoul'
+};
+
+console.log(MYAPP.person.name); // Kim
+```
+
+
+
 ### 3.3. 모듈 패턴
 
+클래스를 모방하여 관련 있는 변수와 함수를 모아 즉시 실행 함수로 감싸 하나의 모듈을 만든다. 모듈 패턴은 자바스크립트의 클로저를 기반으로 동작한다. 
+
+
+
+#### 특징
+
+- 전역 변수의 억제
+
+- 캡슐화 구현
+
+
+
+#### 캡슐화
+
+외부에 공개될 필요가 없는 정보를 외부에 노출시키지 않고 숨기는 것, 정보 은닉을 말한다. 모듈 패턴은 전역 네임스페이스의 오염을 막는 기능과 캡슐화를 구현하기 위해 사용한다.
+
+```javascript
+var Counter = (function () {
+  // private 변수
+  var num = 0;
+
+  // 외부로 공개할 데이터나 메서드를 프로퍼티로 추가한 객체를 반환한다.
+  return {
+    increase() {
+      return ++num;
+    },
+    decrease() {
+      return --num;
+    }
+  };
+}());
+
+// private 변수는 외부로 노출되지 않는다.
+console.log(Counter.num); // undefined
+
+console.log(Counter.increase()); // 1
+console.log(Counter.increase()); // 2
+console.log(Counter.decrease()); // 1
+console.log(Counter.decrease()); // 0
+```
+
+즉시 실행 함수는 외부에 노출하고 싶은 변수나 함수를 담은 객체를 반환한다. 이때 반환되는 객체의 프로퍼티는 외부에 노출되는 퍼블릭 멤버이다. 외부로 노출하고 싶지 않은 변수나 함수는 반환하는 객체에 추가하지 않으면 외부에서 접근할 수 없는 프라이빗 멤버가 된다.
+
+
+
 ### 3.4. ES6 모듈
+
+ES6 모듈은 모던 브라우저에서 사용 가능하다. (Chrome 61, FF 60, SF 10.1, Edge 16 이상)
+
+구형 브라우저에서는 동작하지 않으며 이를 사용하더라도 트랜스파일링, 번들링이 필요하므로 아직까지는 웹팩 등의 모듈 번들러를 사용하는 것이 일반적이다.
+
+script 태그에 type="module" 어트리뷰트를 추가하면 로드된 자바스크립트 파일은 모듈로서 동작한다. 모듈의 파일 확장자는 mjs를 권장한다.
+
+```javascript
+<script type="module" src="lib.mjs"></script>
+<script type="module" src="app.mjs"></script>
+```
+

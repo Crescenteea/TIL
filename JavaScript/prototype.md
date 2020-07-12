@@ -317,8 +317,9 @@ console.log(obj.foo.prototype); // undefined
 
 ### 3.3. 프로토타입의 constructor 프로퍼티와 생성자 함수
 
-* 모든 프로토타입 = constructor 프로퍼티를 갖음
-* constructor 프로퍼티 = prototype 프로퍼티로 자신을 참조하고 있는 생성자 함수를 가리킴
+* 모든 프로토타입은 constructor 프로퍼티를 갖음
+* constructor 프로퍼티는 prototype 프로퍼티로 자신을 참조하고 있는 생성자 함수를 가리킴
+  * 즉, 함수 객체가 생성될 때(생성자 함수가 생성될 때)이 연결이 이뤄짐
 
 ▼
 
@@ -367,11 +368,28 @@ console.log(me.constructor === Person)
 * 생성자 함수에 의해 생성된 인스턴스는 프로토타입의 constructor 프로퍼티에 의해 생성자 함수와 연결됨
 * constructor 프로퍼티가 가리키는 생성자 함수 = 인스턴스를 생성한 생성자 함수임
 
+```javascript
+// obj 객체를 생성한 생성자 함수는 Object다.
+const obj = new Object();
+console.log(obj.constructor === Object); // true
+
+// add 함수 객체를 생성한 생성자 함수는 Function이다.
+const add = new Function('a', 'b', 'return a + b');
+console.log(add.constructor === Function); // true
+
+// 생성자 함수
+function Person(name) {
+  this.name = name;
+}
+
+// me 객체를 생성한 생성자 함수는 Person이다.
+const me = new Person('Lee');
+console.log(me.constructor === Person); // true
+```
 
 
 
-
-* new 연산자를 사용하지 않는 객체 생성 방식도 존재
+* 리터럴 표기법에 의한 객체 생성 방식과 같이 명시적으로 new 연산자와 함께 생성자 함수를 호출하여 인스턴스를 생성하지 않는 객체 생성 방식도 존재
 
 ```javascript
 // 객체 리터럴
@@ -392,7 +410,7 @@ const regexr = /is/ig;
 #### 리터럴 표기법에 의해 생성된 객체 
 
 * 프로토타입 존재함 - 상속을 위해
-* = 가상적인 생성자 함수를 갖음
+* 가상적인 생성자 함수를 갖음
 
 * 그러나 프로토타입의 constructor 프로퍼티가 가리키는 생성자 함수가 반드시 개체를 생성한 생성자 함수는 아님
 
@@ -503,7 +521,7 @@ console.log(foo.constructor === Function); // true
 
 * 프로토타입이 생성되는 시점 = 생성자 함수가 생성되는 시점
 * 단독으로 존재할 수 없음
-* 쌍으로 존재함
+* 프로토타입과 생성자 함수는 항상 쌍으로 존재함
 * 생성자 함수
   * 사용자 정의 생성자 함수
   * 빌트인 생성자 함수(자바스크립트 기본적으로 제공하는 생성자 함수)
@@ -515,11 +533,205 @@ console.log(foo.constructor === Function); // true
 ### 5.1. 사용자 정의 생성자 함수와 프로토타입 생성 시점
 
 * 일반 함수(함수 선언문, 함수 표현식)로 정의한 함수 객체는 new 연산자와 함께 생성자 함수로서 호출 가능
-* constructor는 함수 정의가 평가되어 함수 객체를 생성하는 시점에 프로토타입도 더불어 생성됨
+* **constructor(생성자 함수로서 호출할 수 있는 함수)는 함수 정의가 평가되어 함수 객체를 생성하는 시점에 프로토타입도 더불어 생성됨**
 
 *프로토타입이 생성되는 시점 = 생성자 함수가 생성되는 시점*
 
+```javascript
+// 함수 정의(constructor)가 평가되어 함수 객체를 생성하는 시점에 프로토타입도 더불어 생성된다.
+console.log(Person.prototype); // {constructor: ƒ}
 
+// 생성자 함수
+function Person(name) {
+  this.name = name;
+}
+```
+
+
+
+#### 생성자 함수로서 호출할 수 없는 함수의 경우 (non-constructor)
+
+```javascript
+// 화살표 함수는 non-constructor이다.
+const Person = name => {
+  this.name = name;
+};
+
+// non-constructor는 프로토타입이 생성되지 않는다.
+console.log(Person.prototype); // undefined
+```
+
+- 함수 선언문으로 정의된 Person 생성자 함수는 어떤 코드보다 먼저 평가되어 함수 객체가 됨
+
+- 이때 프로토타입도 생성됨
+
+- 생성된 프로토타입은 Person 생성자 함수의 prototype 프로퍼티에 바인딩되며
+
+  오직 constructor 프로퍼티만을 갖는 객체임
+
+![img](https://poiemaweb.com/assets/fs-images/19-12.png)
+
+
+
+- 프로토타입 = 객체
+- 모든 객체는 프로토타입을 가짐 = 프로토타입도 자신의 프로토타입을 갖음
+  - 생성된 프로토타입의 프로토타입은 Object.prototype임
+
+
+
+빌트인 생성자 함수가 아닌 사용자 정의 생성자 함수는 자신이 평가되어 함수 객체로 생성되는 시점에 프로토타입도 더불어 생성되며, 생성된 프로토타입의 프로토타입은 언제나 Object.prototype이다.
+
+
+
+
+
+### 5.2. 빌트인 생성자 함수와 프로토타입 생성 시점
+
+모든 빌트인 생성자 함수는 전역 객체가 생성되는 시점에 생성되며 빌트인 생성자 함수가 생성되는 시점에 프로토타입이 생성된다. 생성된 프로토타입은 빌트인 생성자 함수의 prototype 프로퍼티에 바인딩된다.
+
+![img](https://poiemaweb.com/assets/fs-images/19-13.png)
+
+표준 빌트인 객체인 Object도 전역 객체의 프로퍼티이며 전역 객체가 생성되는 시점에 생성된다.  
+
+다시 말해 객체가 생성되기 이전에 생성자 함수와 프로토타입은 이미 객체화되어 존재한다. 
+
+**생성자 함수 또는 리터럴 표기법으로 객체를 생성하면 프로토타입은 생성된 객체의 [[Prototype]] 내부 슬롯에 할당된다.** 이로써 생성된 객체는 프로토타입을 상속받는다.
+
+
+
+
+
+## 6.  객체 생성 방식과 프로토타입의 결정
+
+#### 객체 생성 방법
+
+- 객체 리터럴
+- Object 생성자 함수
+- 생성자 함수
+- Object.create 메서드
+- 클래스 (ES6)
+
+공통점 : 추상 연산에 의해 생성
+
+
+
+
+
+### 6.1. 객체 리터럴에 의해 생성된 객체의 프로토타입
+
+자바스크립트 엔진은 객체 리터럴을 평가하여 객체를 생성할 때, 추상 연산 ObjectCreate를 호출한다. 이때 추상 연산 ObjectCreate에 전달되는 프로토타입은 Object.prototype이다. 즉, 객체 리터럴에 의해 생성되는 객체의 프로토타입은 Object.prototype이다.
+
+```javascript
+const obj = { x: 1 };
+```
+
+
+
+위의 객체 리터럴이 평가되면 추상 연산 ObjectCreate에 의해 아래 그림과 같이 Object 생성자 함수와 Object.prototype과 생성된 객체 사이에 연결이 생성된다.
+
+
+
+![img](https://poiemaweb.com/assets/fs-images/19-14.png)
+
+
+
+객체 리터럴에 의해 생성된 obj 객체는 Object.prototype을 프로토타입으로 갖으며 이를 상속받는다. 따라서 Object.prototype의 constructor 프로퍼티와 hasOwnProperty 메서드를 자신의 자산인 것처럼 자유롭게 사용할 수 있다. 이는 obj 객체가 자신의 프로토타입인 Object.prototype 객체를 상속받았기 때문이다.
+
+
+
+
+
+### 6.2. Object 생성자 함수에 의해 생성된 객체의 프로토타입
+
+Object 생성자 함수를 인수 없이 호출하면 빈 객체가 생성된다.  Object 생성자 함수를 호출하면 객체 리터럴과 마찬가지로 추상 연산 ObjectCreate가 호출된다. 이때 추상 연산 ObjectCreate에 전달되는 프로토타입은 Object.prototype이다. 즉, Object 생성자 함수에 의해 생성되는 객체의 프로토타입은 Object.prototype이다.
+
+```javascript
+const obj = new Object();
+obj.x = 1;
+```
+
+
+
+객체 리터럴에 의해 생성된 객체와 동일한 구조를 갖으며 연결이 만들어 진다.
+
+
+
+![img](https://poiemaweb.com/assets/fs-images/19-15.png)
+
+
+
+이처럼 Object 생성자 함수에 의해 생성된 obj 객체는 Object.prototype을 프로토타입으로 갖게 되며, 이로써 Object.prototype을 상속받는다.
+
+```javascript
+const obj = new Object();
+obj.x = 1;
+
+// Object 생성자 함수에 의해 생성된 obj 객체는 Object.prototype을 상속받는다.
+console.log(obj.constructor === Object); // true
+console.log(obj.hasOwnProperty('x'));    // true
+```
+
+#### 객체 리터럴과 Object 생성자 함수에 의한 객체 생성 방식의 차이 
+
+**프로퍼티를 추가하는 방식**
+
+객체 리터럴 방식은 객체 리터럴 내부에 프로퍼티를 추가하지만 Object 생성자 함수 방식은 일단 빈 객체를 생성한 이후 프로퍼티를 추가해야 한다.
+
+
+
+
+
+### 6.3. 생성자 함수에 의해 생성된 객체의 프로토타입
+
+new 연산자와 함께 생성자 함수를 호출하여 인스턴스를 생성시 추상 연산 ObjectCreate가 호출된다. 이때 추상 연산 ObjectCreate에 전달되는 프로토타입은 생성자 함수의 prototype 프로퍼티에 바인딩되어 있는 객체다. 즉, **생성자 함수에 의해 생성되는 객체의 프로토타입은 생성자 함수의 prototype 프로퍼티에 바인딩되어 있는 객체**이다.
+
+```javascript
+function Person(name) {
+  this.name = name;
+}
+
+const me = new Person('Lee');
+```
+
+
+
+추상 연산 ObjectCreate에 의해 다음과 같이 생성자 함수와 생성자 함수의 prototype 프로퍼티에 바인딩되어 있는 객체와 생성된 객체 사이에 연결이 만들어 진다.
+
+
+
+![img](https://poiemaweb.com/assets/fs-images/19-16.png)
+
+사용자 정의 생성자 함수 Person과 더불어 생성된 프로토타입 Person.prototype의 프로퍼티는 constructor 뿐이다.
+
+- 프로토타입 = 객체
+
+- 프로토타입에도 프로퍼티의 추가 / 삭제가 가능함
+
+```javascript
+function Person(name) {
+  this.name = name;
+}
+
+// 프로토타입 Person.prototype에 프로퍼티를 추가하여 하위(자식) 객체가 상속받을 수 있도록 구현
+// 프로토타입 메서드
+Person.prototype.sayHello = function () {
+  console.log(`Hi! My name is ${this.name}`);
+};
+
+const me = new Person('Lee');
+const you = new Person('Kim');
+
+me.sayHello();  // Hi! My name is Lee
+you.sayHello(); // Hi! My name is Kim
+```
+
+
+
+Person 생성자 함수를 통해 생성된 모든 객체는 프로토타입에 추가된 sayHello 메서드를 상속받아 자신의 메서드처럼 사용할 수 있다.
+
+
+
+![img](https://poiemaweb.com/assets/fs-images/19-17.png)
 
 
 
@@ -533,11 +745,11 @@ console.log(foo.constructor === Function); // true
 
 > 오버라이딩(Overriding)
 >
-> 상위 클래스가 가지고 있는 메소드를 하위 클래스가 재정의하여 사용하는 방식이다.
+> 상위 클래스가 가지고 있는 메서드를 하위 클래스가 재정의하여 사용하는 방식이다.
 >
 > 오버로딩(Overloading)
 >
-> 함수의 이름은 동일하지만 매개변수의 타입 또는 개수가 다른 메소드를 구현하고 매개변수에 의해 메소드를 구별하여 호출하는 방식이다. 자바스크립트는 오버로딩을 지원하지 않지만 arguments 객체를 사용하여 구현할 수는 있다.
+> 함수의 이름은 동일하지만 매개변수의 타입 또는 개수가 다른 메소드를 구현하고 매개변수에 의해 메서드를 구별하여 호출하는 방식이다. 자바스크립트는 오버로딩을 지원하지 않지만 arguments 객체를 사용하여 구현할 수는 있다.
 
 
 
@@ -569,7 +781,7 @@ console.log(foo.constructor === Function); // true
 
 
 
-Object.create 메소드
+Object.create 메서드
 
 - 첫번째 매개변수에 전달한 객체의 프로토타입 체인에 속하는 객체를 생성
 -  즉, **객체를 생성하면서** **직접적으로 상속을 구현**함
